@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ex 2.1 - Polling Temperature</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+
+
+  </head>
+  <body>
+
+    <h1><em>Hello, Sam.</em></h1>
+      <h2>Presence</h2>
+        <h6 id='pir'></h6>
+
+
+      <h2>Temp</h2>
+      <div class="tempHolder">
+        <img src="https://us.123rf.com/450wm/alexwhite/alexwhite1708/alexwhite170801759/84515299-celsius-red-web-pointer-icon-webdesign-button-on-white-background-.jpg" alt="C" id="myTempC" onclick="changeC()" />
+      </div>
+      <div class="tempHolderF">
+        <img src="https://us.123rf.com/450wm/alexwhite/alexwhite1708/alexwhite170801934/84515368-fahrenheit-red-web-pointer-icon-webdesign-button-on-white-background-.jpg" alt="F" id="myTempF" onclick="changeF()" />
+      </div>
+        <h6 id='temp'></h6>
+
+
+
+      <h2>LED Control</h2>
+        <div class="bulbHolder">
+          <img src="https://www.w3schools.com/js/pic_bulboff.gif" alt="light" id="myBulb" onclick="turnOn()" />
+        </div>
+
+    <script>
+
+$(document).ready(
+
+  function doPoll() {
+
+      $.getJSON('http://10.10.111.11:8484/pi/sensors/pir', //#B
+      function (data) { //#C
+        if (data.value == true) {
+          //console.log(data);
+          $('#pir').html('Someone is here!');
+        }
+        else {
+            $('#pir').html('Nobody here!');
+          //console.log('Nobody here.');
+        } //#D
+        setTimeout(doPoll, 5000); //#E
+      });
+    });
+
+    $.getJSON('http://10.10.111.11:8484/pi/sensors/temperature', //#B
+      function (data) { //#C
+          $('#temp').html((data.value) + ' ' + data.unit);
+          $('#temp').html((data.value * 1.8 + 32) + ' ' + 'Fahrenheit');
+          $('#temp').html('Checking Temp'); //#
+    });
+
+
+    $.putJSON = function(url, data, callback) {
+      return jQuery.ajax({
+      headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+      },
+      'type': 'PUT',
+      'url': url,
+      'data': JSON.stringify(data),
+      'dataType': 'json',
+      'success': callback
+      });
+    };
+
+function turnOn() {
+  var image = document.getElementById('myBulb');
+  if (image.src.match("https://www.w3schools.com/js/pic_bulbon.gif")) {
+    image.src = "https://www.w3schools.com/js/pic_bulboff.gif";
+      $.putJSON('http://10.10.111.11:8484/pi/actuators/leds/1/', { 'value' : false},);
+  } else {
+    image.src = "https://www.w3schools.com/js/pic_bulbon.gif";
+    $.putJSON('http://10.10.111.11:8484/pi/actuators/leds/1/', { 'value' : true},);
+  }
+}
+
+function changeC() {
+      $.getJSON('http://10.10.111.11:8484/pi/sensors/temperature', //#B
+      function (data) { //#C
+          $('#temp').html((data.value) + ' ' + data.unit);
+          });
+}
+
+function changeF() {
+    $.getJSON('http://10.10.111.11:8484/pi/sensors/temperature', //#B
+      function (data) { //#C
+          $('#temp').html((data.value * 1.8 + 32) + ' ' + 'Fahrenheit');
+          });
+}
+
+//#A Wait until the page is loaded and then call doPoll()
+//#B Use the AJAX helper to get the JSON payload from the temperature sensor
+//#C When the response arrives, this function is called
+//#D Select the "temp" HTML element and update its content using the data.value (the value) and data.unit (the unit) returned in the JSON payload
+//#E The doPoll() function sets a timer to call itself again in 5 secods (5000 milliseconds)
+
+    </script>
+  </body>
+</html>

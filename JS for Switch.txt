@@ -1,0 +1,40 @@
+  $.putJSON = function(url, data, callback) {
+    return jQuery.ajax({
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    },
+    'type': 'PUT',
+    'url': url,
+    'data': JSON.stringify(data),
+    'dataType': 'json',
+    'success': callback
+    });
+    var switchState = false;
+var swapText = function(string) {
+  $(".switch h1")
+    .html("")
+    .html(string);
+};
+
+$(".circle").click(function() {
+  if (switchState) {
+    $(this)
+      .removeClass("move-circle-left")
+      .addClass("move-circle-right");
+    $(".off").css("opacity", 1);
+    $(".on").css("opacity", 0);
+    switchState = false;
+
+    $.putJSON('http://10.10.111.11:8484/pi/actuators/leds/1/', { 'value' : false},); 
+  } else if (!switchState) {
+    $(this)
+      .removeClass("move-circle-right")
+      .addClass("move-circle-left");
+    $(".off").css("opacity", 0);
+    $(".on").css("opacity", 1);
+    switchState = true;
+
+    $.putJSON('http://10.10.111.11:8484/pi/actuators/leds/1/', { 'value' : true},);
+  }
+});
